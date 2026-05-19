@@ -182,6 +182,34 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      google_drive_connections: {
+        Row: {
+          user_id: string;
+          access_token: string;
+          refresh_token: string;
+          token_expires_at: string;
+          last_synced_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          access_token: string;
+          refresh_token: string;
+          token_expires_at: string;
+          last_synced_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          access_token?: string;
+          refresh_token?: string;
+          token_expires_at?: string;
+          last_synced_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

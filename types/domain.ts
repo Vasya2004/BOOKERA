@@ -47,6 +47,7 @@ export type Note = {
 
 export type DashboardStats = {
   watchedCount: number;
+  watchedHours: number;
   favoriteNotesCount: number;
   insightsCount: number;
 };

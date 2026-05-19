@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Eye, Lightbulb, Star } from "lucide-react";
+import { ArrowRight, BookOpen, Clock3, Eye, Lightbulb, Star } from "lucide-react";
 import { PodcastCard } from "@/components/podcasts/podcast-card";
 import { NoteCard } from "@/components/notes/note-card";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,11 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <section className="grid gap-2.5 sm:grid-cols-3 md:gap-4">
-        <StatCard icon={Eye} label="Просмотрено" value={stats.watchedCount} />
-        <StatCard icon={Star} label="Избранные заметки" value={stats.favoriteNotesCount} />
+      <section className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
+        <StatCard icon={Eye} label="Просмотрено подкастов" value={stats.watchedCount} />
+        <StatCard icon={Clock3} label="Просмотрено часов" value={stats.watchedHours} />
         <StatCard icon={Lightbulb} label="Инсайтов" value={stats.insightsCount} />
+        <StatCard icon={Star} label="Избранные заметки" value={stats.favoriteNotesCount} />
       </section>
 
       <section className="space-y-4">

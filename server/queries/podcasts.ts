@@ -218,6 +218,12 @@ export async function getDashboardData() {
   return {
     stats: {
       watchedCount: podcasts.filter((podcast) => podcast.status === "watched").length,
+      watchedHours: Math.round(
+        podcasts
+          .filter((podcast) => podcast.status === "watched")
+          .reduce((total, podcast) => total + (podcast.durationSeconds ?? 0), 0) /
+          3600,
+      ),
       favoriteNotesCount: insights.filter((note) => note.isFavorite).length,
       insightsCount: insights.length,
     },

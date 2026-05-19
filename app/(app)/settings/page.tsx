@@ -1,17 +1,29 @@
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { ProfileForm } from "@/components/layout/profile-form";
+import { GoogleDriveCard } from "@/components/settings/google-drive-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { hasGoogleDriveEnv } from "@/lib/google-drive/env";
 import { requireUser } from "@/server/actions/auth-helpers";
 
 export default async function SettingsPage() {
   const { supabase, user } = await requireUser();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  const [profileResult, googleDriveResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("google_drive_connections")
+      .select("last_synced_at")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const profile = profileResult.data;
+  const googleDriveConnection = googleDriveResult.data;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -22,6 +34,12 @@ export default async function SettingsPage() {
       <ProfileForm
         fullName={profile?.full_name ?? ""}
         avatarUrl={profile?.avatar_url ?? ""}
+      />
+
+      <GoogleDriveCard
+        connected={Boolean(googleDriveConnection)}
+        lastSyncedAt={googleDriveConnection?.last_synced_at ?? null}
+        available={hasGoogleDriveEnv()}
       />
 
       <Card className="p-5">

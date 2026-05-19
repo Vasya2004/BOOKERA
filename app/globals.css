@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f7f7f5;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --muted: #eeeeea;
+  --muted-foreground: #666661;
+  --border: #deded8;
+  --primary: #111111;
+  --primary-foreground: #ffffff;
+  --accent: #e7f0ff;
+  --accent-foreground: #0f3b74;
+  --destructive: #c83333;
+  --destructive-foreground: #ffffff;
+  --ring: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #10100f;
+  --foreground: #f4f4ef;
+  --card: #171715;
+  --card-foreground: #f4f4ef;
+  --muted: #23231f;
+  --muted-foreground: #aaa99e;
+  --border: #30302a;
+  --primary: #f4f4ef;
+  --primary-foreground: #111111;
+  --accent: #1a2a3d;
+  --accent-foreground: #b9d7ff;
+  --destructive: #f05b5b;
+  --destructive-foreground: #111111;
+  --ring: #f4f4ef;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: #171717;
+  color: #ffffff;
 }

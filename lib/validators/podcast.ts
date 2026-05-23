@@ -10,10 +10,9 @@ export const podcastStatusSchema = z.enum([
 export const noteTypeSchema = z.enum([
   "thought",
   "insight",
-  "quote",
+  "idea",
   "action",
   "question",
-  "idea",
 ]);
 
 export const podcastFormSchema = z.object({

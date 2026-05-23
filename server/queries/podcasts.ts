@@ -160,7 +160,7 @@ export async function getInsights(filters: {
       `,
     )
     .eq("user_id", user.id)
-    .in("type", ["thought", "insight", "idea", "action", "quote"])
+    .in("type", ["thought", "insight", "idea", "action", "question"])
     .order("created_at", { ascending: false });
 
   if (filters.type && filters.type !== "all") {
@@ -215,15 +215,12 @@ export async function getDashboardData() {
     getInsights({ favorite: false }),
   ]);
 
+  const watchedCount = podcasts.filter((podcast) => podcast.status === "watched").length;
+
   return {
     stats: {
-      watchedCount: podcasts.filter((podcast) => podcast.status === "watched").length,
-      watchedHours: Math.round(
-        podcasts
-          .filter((podcast) => podcast.status === "watched")
-          .reduce((total, podcast) => total + (podcast.durationSeconds ?? 0), 0) /
-          3600,
-      ),
+      watchedCount,
+      watchedHours: watchedCount * 2,
       favoriteNotesCount: insights.filter((note) => note.isFavorite).length,
       insightsCount: insights.length,
     },

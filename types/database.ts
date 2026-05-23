@@ -11,10 +11,9 @@ export type PodcastStatus = "want_to_watch" | "watching" | "watched";
 export type NoteType =
   | "thought"
   | "insight"
-  | "quote"
+  | "idea"
   | "action"
-  | "question"
-  | "idea";
+  | "question";
 
 export type Database = {
   public: {

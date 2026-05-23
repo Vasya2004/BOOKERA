@@ -35,7 +35,7 @@ export default async function InsightsPage({ searchParams }: PageProps) {
           <option value="insight">Инсайты</option>
           <option value="idea">Идеи</option>
           <option value="action">Действия</option>
-          <option value="quote">Цитаты</option>
+          <option value="question">Вопросы</option>
         </Select>
         <Select name="tag" defaultValue={tag ?? "all"} className="h-11 md:h-10">
           <option value="all">Все теги</option>
@@ -66,7 +66,7 @@ export default async function InsightsPage({ searchParams }: PageProps) {
       ) : (
         <EmptyState
           title="Инсайты не найдены"
-          description="Создавайте заметки типов thought, insight, idea, action или quote на страницах подкастов."
+          description="Создавайте заметки типов «Мысль», «Инсайт», «Идея», «Действие» или «Вопрос» на страницах подкастов."
         />
       )}
     </div>

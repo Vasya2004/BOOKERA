@@ -52,7 +52,7 @@ create table public.notes (
   is_favorite boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint notes_type_check check (type in ('thought', 'insight', 'quote', 'action', 'question', 'idea')),
+  constraint notes_type_check check (type in ('thought', 'insight', 'idea', 'action', 'question')),
   constraint notes_timestamp_check check (timestamp_seconds is null or timestamp_seconds >= 0)
 );
 

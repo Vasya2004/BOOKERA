@@ -7,10 +7,9 @@ const types: Array<{ value: NoteType | "all"; label: string }> = [
   { value: "all", label: "Все заметки" },
   { value: "thought", label: "Мысли" },
   { value: "insight", label: "Инсайты" },
-  { value: "quote", label: "Цитаты" },
   { value: "idea", label: "Идеи" },
-  { value: "question", label: "Вопросы" },
   { value: "action", label: "Действия" },
+  { value: "question", label: "Вопросы" },
 ];
 
 export function NotesFilter({ defaultValue = "all" }: { defaultValue?: string }) {

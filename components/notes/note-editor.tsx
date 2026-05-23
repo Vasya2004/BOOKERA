@@ -37,10 +37,9 @@ export function NoteEditor({ podcastId }: { podcastId: string }) {
             <Select id="type" name="type" defaultValue="thought" className="h-11 sm:h-10">
               <option value="thought">Мысль</option>
               <option value="insight">Инсайт</option>
-              <option value="quote">Цитата</option>
               <option value="idea">Идея</option>
-              <option value="question">Вопрос</option>
               <option value="action">Действие</option>
+              <option value="question">Вопрос</option>
             </Select>
           </div>
           <div className="space-y-2">

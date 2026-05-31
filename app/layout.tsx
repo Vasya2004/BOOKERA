@@ -14,22 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Podcastera",
-  description: "Personal knowledge base for YouTube podcasts.",
+  title: "Bookera",
+  description: "Personal reading library for book insights and quotes.",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.svg?v=2", type: "image/svg+xml", sizes: "any" },
-      { url: "/icon.png?v=2", type: "image/png", sizes: "32x32" },
-      { url: "/icon.png?v=2", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/icon.png?v=3", type: "image/png", sizes: "1024x1024" },
     ],
-    shortcut: "/favicon.svg?v=2",
-    apple: "/icon.png?v=2",
+    shortcut: "/favicon.ico?v=3",
+    apple: [{ url: "/apple-icon.png?v=3", type: "image/png", sizes: "180x180" }],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Podcastera",
+    title: "Bookera",
   },
   formatDetection: {
     telephone: false,
@@ -40,7 +39,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#111111",
+  themeColor: "#071127",
 };
 
 export default function RootLayout({

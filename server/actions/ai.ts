@@ -17,7 +17,7 @@ function unavailable(sourceText: string): AiUnavailableResult {
   };
 }
 
-export async function generatePodcastSummary(sourceText: string) {
+export async function generateBookSummary(sourceText: string) {
   return unavailable(sourceText);
 }
 

@@ -10,7 +10,7 @@ export function Select({
     <span className="relative block w-full">
       <select
         className={cn(
-          "h-10 w-full appearance-none rounded-md border border-border bg-card py-0 pl-3 pr-11 text-sm text-foreground outline-none transition focus:ring-2 focus:ring-ring",
+          "h-10 w-full appearance-none rounded-md border border-border bg-[#fffdf8] py-0 pl-3 pr-11 text-sm text-foreground outline-none transition focus:border-[#dca64d] focus:ring-2 focus:ring-ring/65",
           className,
         )}
         {...props}

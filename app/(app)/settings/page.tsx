@@ -1,29 +1,19 @@
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { ProfileForm } from "@/components/layout/profile-form";
-import { GoogleDriveCard } from "@/components/settings/google-drive-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { hasGoogleDriveEnv } from "@/lib/google-drive/env";
 import { requireUser } from "@/server/actions/auth-helpers";
 
 export default async function SettingsPage() {
   const { supabase, user } = await requireUser();
-  const [profileResult, googleDriveResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, avatar_url")
-      .eq("id", user.id)
-      .maybeSingle(),
-    supabase
-      .from("google_drive_connections")
-      .select("last_synced_at")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-  ]);
+  const profileResult = await supabase
+    .from("profiles")
+    .select("full_name, avatar_url")
+    .eq("id", user.id)
+    .maybeSingle();
 
   const profile = profileResult.data;
-  const googleDriveConnection = googleDriveResult.data;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -36,16 +26,10 @@ export default async function SettingsPage() {
         avatarUrl={profile?.avatar_url ?? ""}
       />
 
-      <GoogleDriveCard
-        connected={Boolean(googleDriveConnection)}
-        lastSyncedAt={googleDriveConnection?.last_synced_at ?? null}
-        available={hasGoogleDriveEnv()}
-      />
-
       <Card className="p-5">
         <h2 className="text-base font-semibold">Export</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Экспорт отдаёт ваши подкасты, заметки и теги в JSON. Доступен только
+          Экспорт отдаёт ваши книги, заметки и теги в JSON. Доступен только
           авторизованному пользователю.
         </p>
         <Link href="/api/export" className="mt-4 flex sm:inline-flex">

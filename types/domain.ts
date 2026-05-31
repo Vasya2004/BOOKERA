@@ -1,4 +1,4 @@
-import type { NoteType, PodcastStatus } from "@/types/database";
+import type { BookStatus, NoteType } from "@/types/database";
 
 export type Tag = {
   id: string;
@@ -6,19 +6,18 @@ export type Tag = {
   color: string | null;
 };
 
-export type Podcast = {
+export type Book = {
   id: string;
-  youtubeUrl: string;
-  youtubeVideoId: string;
   title: string;
-  channelTitle: string | null;
-  thumbnailUrl: string | null;
-  durationSeconds: number | null;
-  publishedAt: string | null;
+  author: string | null;
+  coverUrl: string | null;
+  isbn: string | null;
+  publishedYear: number | null;
+  pageCount: number | null;
   description: string | null;
-  status: PodcastStatus;
+  status: BookStatus;
   personalRating: number | null;
-  watchedAt: string | null;
+  finishedAt: string | null;
   mainTakeaway: string | null;
   summary: string | null;
   createdAt: string;
@@ -29,25 +28,26 @@ export type Podcast = {
 
 export type Note = {
   id: string;
-  podcastId: string;
+  bookId: string;
   type: NoteType;
   content: string;
-  timestampSeconds: number | null;
+  pageNumber: number | null;
+  chapterNumber: number | null;
   isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
   tags: Tag[];
-  podcast?: {
+  book?: {
     id: string;
     title: string;
-    channelTitle: string | null;
-    youtubeVideoId: string;
+    author: string | null;
+    coverUrl: string | null;
   };
 };
 
 export type DashboardStats = {
-  watchedCount: number;
-  watchedHours: number;
+  finishedCount: number;
+  finishedPagesCount: number;
   favoriteNotesCount: number;
   insightsCount: number;
 };

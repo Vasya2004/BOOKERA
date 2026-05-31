@@ -2,9 +2,9 @@
 
 import { requireUser } from "@/server/actions/auth-helpers";
 import { failure, success, type ActionResult } from "@/server/actions/result";
-import { tagNameSchema } from "@/lib/validators/podcast";
+import { tagNameSchema } from "@/lib/validators/book";
 
-const tagColors = ["#2563eb", "#0f766e", "#7c3aed", "#be123c", "#a16207", "#4d7c0f"];
+const tagColors = ["#7a4e1d", "#2f5d50", "#8c6a2f", "#6f4232", "#3f4f35", "#9a6f2f"];
 
 export async function createTag(name: string): Promise<ActionResult & { tagId?: string }> {
   const parsed = tagNameSchema.safeParse(name);
@@ -34,27 +34,27 @@ export async function createTag(name: string): Promise<ActionResult & { tagId?: 
   return { ok: true, tagId: data.id };
 }
 
-export async function attachTagToPodcast(
-  podcastId: string,
+export async function attachTagToBook(
+  bookId: string,
   tagId: string,
 ): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const { error } = await supabase
-    .from("podcast_tags")
-    .upsert({ podcast_id: podcastId, tag_id: tagId, user_id: user.id });
+    .from("book_tags")
+    .upsert({ book_id: bookId, tag_id: tagId, user_id: user.id });
 
   return error ? failure(error.message) : success("Тег добавлен");
 }
 
-export async function detachTagFromPodcast(
-  podcastId: string,
+export async function detachTagFromBook(
+  bookId: string,
   tagId: string,
 ): Promise<ActionResult> {
   const { supabase, user } = await requireUser();
   const { error } = await supabase
-    .from("podcast_tags")
+    .from("book_tags")
     .delete()
-    .eq("podcast_id", podcastId)
+    .eq("book_id", bookId)
     .eq("tag_id", tagId)
     .eq("user_id", user.id);
 
@@ -82,14 +82,14 @@ export async function detachTagFromNote(noteId: string, tagId: string): Promise<
   return error ? failure(error.message) : success("Тег удалён");
 }
 
-export async function syncPodcastTags(podcastId: string, tagNames: string[]) {
+export async function syncBookTags(bookId: string, tagNames: string[]) {
   const { supabase, user } = await requireUser();
-  await supabase.from("podcast_tags").delete().eq("podcast_id", podcastId).eq("user_id", user.id);
+  await supabase.from("book_tags").delete().eq("book_id", bookId).eq("user_id", user.id);
 
   for (const tagName of tagNames) {
     const created = await createTag(tagName);
     if (created.ok && created.tagId) {
-      await attachTagToPodcast(podcastId, created.tagId);
+      await attachTagToBook(bookId, created.tagId);
     }
   }
 }

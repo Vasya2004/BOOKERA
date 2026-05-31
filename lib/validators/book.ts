@@ -1,35 +1,36 @@
 import { z } from "zod";
-import { extractYouTubeVideoId } from "@/lib/youtube/utils";
 
-export const podcastStatusSchema = z.enum([
-  "want_to_watch",
-  "watching",
-  "watched",
-]);
+export const bookStatusSchema = z.enum(["to_read", "reading", "finished"]);
 
 export const noteTypeSchema = z.enum([
-  "thought",
   "insight",
+  "quote",
   "idea",
   "action",
   "question",
 ]);
 
-export const podcastFormSchema = z.object({
-  youtubeUrl: z
-    .string()
-    .trim()
-    .min(1, "YouTube URL is required")
-    .refine((value) => Boolean(extractYouTubeVideoId(value)), {
-      message: "Paste a valid YouTube URL",
-    }),
+export const bookFormSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(240),
-  channelTitle: z.string().trim().max(160).optional().or(z.literal("")),
+  author: z.string().trim().max(160).optional().or(z.literal("")),
+  coverUrl: z.string().trim().url().optional().or(z.literal("")),
+  isbn: z.string().trim().max(32).optional().or(z.literal("")),
+  publishedYear: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(3000)
+    .optional()
+    .or(z.literal("")),
+  pageCount: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(10000)
+    .optional()
+    .or(z.literal("")),
   description: z.string().trim().optional().or(z.literal("")),
-  thumbnailUrl: z.string().trim().url().optional().or(z.literal("")),
-  durationSeconds: z.coerce.number().int().positive().optional().or(z.literal("")),
-  publishedAt: z.string().trim().optional().or(z.literal("")),
-  status: podcastStatusSchema,
+  status: bookStatusSchema,
   personalRating: z.coerce
     .number()
     .int()
@@ -43,10 +44,11 @@ export const podcastFormSchema = z.object({
 });
 
 export const noteFormSchema = z.object({
-  podcastId: z.string().uuid(),
-  type: noteTypeSchema,
+  bookId: z.string().uuid(),
+  type: noteTypeSchema.default("insight"),
   content: z.string().trim().min(1, "Note cannot be empty").max(4000),
-  timestamp: z.string().trim().optional().or(z.literal("")),
+  pageNumber: z.coerce.number().int().positive().optional().or(z.literal("")),
+  chapterNumber: z.coerce.number().int().min(1).max(20),
   isFavorite: z.coerce.boolean().optional(),
   tags: z.string().trim().optional().or(z.literal("")),
 });

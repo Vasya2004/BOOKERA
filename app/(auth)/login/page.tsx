@@ -30,16 +30,16 @@ export default async function LoginPage() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    redirect("/dashboard");
+    redirect("/library");
   }
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md text-[#fff8ec]">
         <div className="mb-8">
           <BrandLogo compact />
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Войдите в личную базу подкастов
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#fff8ec]">
+            Войдите в личную библиотеку книг
           </h1>
         </div>
         <LoginForm />

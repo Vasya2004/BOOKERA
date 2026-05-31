@@ -19,41 +19,43 @@ create table public.profiles (
   updated_at timestamptz not null default now()
 );
 
-create table public.podcasts (
+create table public.books (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  youtube_url text not null,
-  youtube_video_id text not null,
   title text not null,
-  channel_title text,
-  thumbnail_url text,
-  duration_seconds integer,
-  published_at timestamptz,
+  author text,
+  cover_url text,
+  isbn text,
+  published_year integer,
+  page_count integer,
   description text,
-  status text not null default 'want_to_watch',
+  status text not null default 'to_read',
   personal_rating integer,
-  watched_at timestamptz,
+  finished_at timestamptz,
   main_takeaway text,
   summary text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint podcasts_status_check check (status in ('want_to_watch', 'watching', 'watched')),
-  constraint podcasts_rating_check check (personal_rating is null or personal_rating between 1 and 10),
-  constraint podcasts_user_video_unique unique (user_id, youtube_video_id)
+  constraint books_status_check check (status in ('to_read', 'reading', 'finished')),
+  constraint books_rating_check check (personal_rating is null or personal_rating between 1 and 10),
+  constraint books_year_check check (published_year is null or published_year between 0 and 3000),
+  constraint books_page_count_check check (page_count is null or page_count between 1 and 10000)
 );
 
 create table public.notes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  podcast_id uuid not null references public.podcasts(id) on delete cascade,
+  book_id uuid not null references public.books(id) on delete cascade,
   type text not null,
   content text not null,
-  timestamp_seconds integer,
+  page_number integer,
+  chapter_number integer,
   is_favorite boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint notes_type_check check (type in ('thought', 'insight', 'idea', 'action', 'question')),
-  constraint notes_timestamp_check check (timestamp_seconds is null or timestamp_seconds >= 0)
+  constraint notes_type_check check (type in ('insight', 'quote', 'idea', 'action', 'question')),
+  constraint notes_page_check check (page_number is null or page_number > 0),
+  constraint notes_chapter_number_check check (chapter_number is null or chapter_number between 1 and 20)
 );
 
 create table public.tags (
@@ -65,11 +67,11 @@ create table public.tags (
   constraint tags_user_name_unique unique (user_id, name)
 );
 
-create table public.podcast_tags (
-  podcast_id uuid not null references public.podcasts(id) on delete cascade,
+create table public.book_tags (
+  book_id uuid not null references public.books(id) on delete cascade,
   tag_id uuid not null references public.tags(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
-  primary key (podcast_id, tag_id)
+  primary key (book_id, tag_id)
 );
 
 create table public.note_tags (
@@ -79,25 +81,26 @@ create table public.note_tags (
   primary key (note_id, tag_id)
 );
 
-create index podcasts_user_status_idx on public.podcasts(user_id, status);
-create index podcasts_user_created_idx on public.podcasts(user_id, created_at desc);
-create index podcasts_user_watched_idx on public.podcasts(user_id, watched_at desc nulls last);
-create index podcasts_user_rating_idx on public.podcasts(user_id, personal_rating desc nulls last);
-create index podcasts_search_idx on public.podcasts using gin (
-  to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(channel_title, '') || ' ' || coalesce(description, ''))
+create index books_user_status_idx on public.books(user_id, status);
+create index books_user_created_idx on public.books(user_id, created_at desc);
+create index books_user_finished_idx on public.books(user_id, finished_at desc nulls last);
+create index books_user_rating_idx on public.books(user_id, personal_rating desc nulls last);
+create index books_search_idx on public.books using gin (
+  to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(author, '') || ' ' || coalesce(description, ''))
 );
 create index notes_user_type_idx on public.notes(user_id, type);
-create index notes_podcast_created_idx on public.notes(podcast_id, created_at desc);
+create index notes_book_created_idx on public.notes(book_id, created_at desc);
+create index notes_book_chapter_idx on public.notes(book_id, chapter_number, created_at desc);
 create index notes_user_favorite_idx on public.notes(user_id, is_favorite) where is_favorite = true;
-create index podcast_tags_user_idx on public.podcast_tags(user_id, tag_id);
+create index book_tags_user_idx on public.book_tags(user_id, tag_id);
 create index note_tags_user_idx on public.note_tags(user_id, tag_id);
 
 create trigger profiles_updated_at
 before update on public.profiles
 for each row execute function public.set_updated_at();
 
-create trigger podcasts_updated_at
-before update on public.podcasts
+create trigger books_updated_at
+before update on public.books
 for each row execute function public.set_updated_at();
 
 create trigger notes_updated_at
@@ -130,10 +133,10 @@ after insert on auth.users
 for each row execute function public.handle_new_user();
 
 alter table public.profiles enable row level security;
-alter table public.podcasts enable row level security;
+alter table public.books enable row level security;
 alter table public.notes enable row level security;
 alter table public.tags enable row level security;
-alter table public.podcast_tags enable row level security;
+alter table public.book_tags enable row level security;
 alter table public.note_tags enable row level security;
 
 grant usage on schema public to authenticated;
@@ -141,10 +144,10 @@ grant usage on schema public to authenticated;
 grant select, insert, update, delete
 on table
   public.profiles,
-  public.podcasts,
+  public.books,
   public.notes,
   public.tags,
-  public.podcast_tags,
+  public.book_tags,
   public.note_tags
 to authenticated;
 
@@ -153,8 +156,8 @@ on public.profiles for all
 using (auth.uid() = id)
 with check (auth.uid() = id);
 
-create policy "Users manage own podcasts"
-on public.podcasts for all
+create policy "Users manage own books"
+on public.books for all
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
@@ -163,17 +166,17 @@ on public.notes for all
 using (
   auth.uid() = user_id
   and exists (
-    select 1 from public.podcasts
-    where podcasts.id = notes.podcast_id
-    and podcasts.user_id = auth.uid()
+    select 1 from public.books
+    where books.id = notes.book_id
+    and books.user_id = auth.uid()
   )
 )
 with check (
   auth.uid() = user_id
   and exists (
-    select 1 from public.podcasts
-    where podcasts.id = notes.podcast_id
-    and podcasts.user_id = auth.uid()
+    select 1 from public.books
+    where books.id = notes.book_id
+    and books.user_id = auth.uid()
   )
 );
 
@@ -182,31 +185,31 @@ on public.tags for all
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy "Users manage own podcast tags"
-on public.podcast_tags for all
+create policy "Users manage own book tags"
+on public.book_tags for all
 using (
   auth.uid() = user_id
   and exists (
-    select 1 from public.podcasts
-    where podcasts.id = podcast_tags.podcast_id
-    and podcasts.user_id = auth.uid()
+    select 1 from public.books
+    where books.id = book_tags.book_id
+    and books.user_id = auth.uid()
   )
   and exists (
     select 1 from public.tags
-    where tags.id = podcast_tags.tag_id
+    where tags.id = book_tags.tag_id
     and tags.user_id = auth.uid()
   )
 )
 with check (
   auth.uid() = user_id
   and exists (
-    select 1 from public.podcasts
-    where podcasts.id = podcast_tags.podcast_id
-    and podcasts.user_id = auth.uid()
+    select 1 from public.books
+    where books.id = book_tags.book_id
+    and books.user_id = auth.uid()
   )
   and exists (
     select 1 from public.tags
-    where tags.id = podcast_tags.tag_id
+    where tags.id = book_tags.tag_id
     and tags.user_id = auth.uid()
   )
 );

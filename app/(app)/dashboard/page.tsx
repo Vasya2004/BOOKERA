@@ -1,14 +1,26 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Clock3, Eye, Lightbulb, Star } from "lucide-react";
-import { PodcastCard } from "@/components/podcasts/podcast-card";
+import { ArrowRight, BookMarked, BookOpen, FileText, Lightbulb, Star } from "lucide-react";
+import { BookCard } from "@/components/books/book-card";
+import { DatabaseSetupCard } from "@/components/layout/database-setup-card";
 import { NoteCard } from "@/components/notes/note-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { getDashboardData } from "@/server/queries/podcasts";
+import { DatabaseSetupError, getDashboardData } from "@/server/queries/books";
 
 export default async function DashboardPage() {
-  const { stats, recentPodcasts, favoriteInsights } = await getDashboardData();
+  let data;
+
+  try {
+    data = await getDashboardData();
+  } catch (error) {
+    if (error instanceof DatabaseSetupError) {
+      return <DatabaseSetupCard message={error.message} />;
+    }
+    throw error;
+  }
+
+  const { stats, recentBooks, favoriteInsights } = data;
 
   return (
     <div className="space-y-6 md:space-y-8">
@@ -16,41 +28,41 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           Дашборд
         </h1>
-        <Link href="/podcasts/new" className="sm:shrink-0">
+        <Link href="/library/new" className="sm:shrink-0">
           <Button className="h-11 w-full sm:h-10 sm:w-auto">
-            Добавить подкаст
+            Добавить книгу
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Link>
       </div>
 
       <section className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
-        <StatCard icon={Eye} label="Просмотрено подкастов" value={stats.watchedCount} />
-        <StatCard icon={Clock3} label="Просмотрено часов" value={stats.watchedHours} />
+        <StatCard icon={BookMarked} label="Прочитано книг" value={stats.finishedCount} />
+        <StatCard icon={FileText} label="Прочитано страниц" value={stats.finishedPagesCount} />
         <StatCard icon={Lightbulb} label="Инсайтов" value={stats.insightsCount} />
         <StatCard icon={Star} label="Избранные заметки" value={stats.favoriteNotesCount} />
       </section>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-xl font-semibold">Последние подкасты</h2>
-          <Link href="/podcasts" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+          <h2 className="text-xl font-semibold">Последние книги</h2>
+          <Link href="/library" className="text-sm font-medium text-muted-foreground hover:text-foreground">
             В библиотеку
           </Link>
         </div>
-        {recentPodcasts.length > 0 ? (
+        {recentBooks.length > 0 ? (
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-            {recentPodcasts.map((podcast) => (
-              <PodcastCard key={podcast.id} podcast={podcast} />
+            {recentBooks.map((book) => (
+              <BookCard key={book.id} book={book} />
             ))}
           </div>
         ) : (
           <EmptyState
             title="Библиотека пока пустая"
-            description="Добавьте первый YouTube-подкаст и начните собирать мысли, инсайты и действия."
+            description="Добавьте первую книгу и начните собирать инсайты, цитаты и действия."
             action={
-              <Link href="/podcasts/new">
-                <Button>Добавить подкаст</Button>
+              <Link href="/library/new">
+                <Button>Добавить книгу</Button>
               </Link>
             }
           />
@@ -67,7 +79,7 @@ export default async function DashboardPage() {
         {favoriteInsights.length > 0 ? (
           <div className="grid gap-3 lg:grid-cols-2">
             {favoriteInsights.map((note) => (
-              <NoteCard key={note.id} note={note} showPodcast />
+              <NoteCard key={note.id} note={note} showBook />
             ))}
           </div>
         ) : (

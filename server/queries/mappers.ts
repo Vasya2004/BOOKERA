@@ -1,46 +1,45 @@
-import type { Note, Podcast, Tag } from "@/types/domain";
-import type { NoteType, PodcastStatus } from "@/types/database";
-import { getYouTubeThumbnailUrl } from "@/lib/youtube/utils";
+import type { Book, Note, Tag } from "@/types/domain";
+import type { BookStatus, NoteType } from "@/types/database";
 
 type TagRelation = { tags: TagRow | TagRow[] | null };
 type TagRow = { id: string; name: string; color: string | null };
 
-export type PodcastRow = {
+export type BookRow = {
   id: string;
-  youtube_url: string;
-  youtube_video_id: string;
   title: string;
-  channel_title: string | null;
-  thumbnail_url: string | null;
-  duration_seconds: number | null;
-  published_at: string | null;
+  author: string | null;
+  cover_url: string | null;
+  isbn: string | null;
+  published_year: number | null;
+  page_count: number | null;
   description: string | null;
-  status: PodcastStatus;
+  status: BookStatus;
   personal_rating: number | null;
-  watched_at: string | null;
+  finished_at: string | null;
   main_takeaway: string | null;
   summary: string | null;
   created_at: string;
   updated_at: string;
   notes?: { count: number }[];
-  podcast_tags?: TagRelation[];
+  book_tags?: TagRelation[];
 };
 
 export type NoteRow = {
   id: string;
-  podcast_id: string;
+  book_id: string;
   type: NoteType;
   content: string;
-  timestamp_seconds: number | null;
+  page_number: number | null;
+  chapter_number: number | null;
   is_favorite: boolean;
   created_at: string;
   updated_at: string;
   note_tags?: TagRelation[];
-  podcasts?: {
+  books?: {
     id: string;
     title: string;
-    channel_title: string | null;
-    youtube_video_id: string;
+    author: string | null;
+    cover_url: string | null;
   } | null;
 };
 
@@ -56,25 +55,24 @@ export function mapTags(relations: TagRelation[] | undefined): Tag[] {
     }));
 }
 
-export function mapPodcast(row: PodcastRow): Podcast {
+export function mapBook(row: BookRow): Book {
   return {
     id: row.id,
-    youtubeUrl: row.youtube_url,
-    youtubeVideoId: row.youtube_video_id,
     title: row.title,
-    channelTitle: row.channel_title,
-    thumbnailUrl: row.thumbnail_url ?? getYouTubeThumbnailUrl(row.youtube_video_id),
-    durationSeconds: row.duration_seconds,
-    publishedAt: row.published_at,
+    author: row.author,
+    coverUrl: row.cover_url,
+    isbn: row.isbn,
+    publishedYear: row.published_year,
+    pageCount: row.page_count,
     description: row.description,
     status: row.status,
     personalRating: row.personal_rating,
-    watchedAt: row.watched_at,
+    finishedAt: row.finished_at,
     mainTakeaway: row.main_takeaway,
     summary: row.summary,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    tags: mapTags(row.podcast_tags),
+    tags: mapTags(row.book_tags),
     notesCount: row.notes?.[0]?.count ?? 0,
   };
 }
@@ -82,20 +80,21 @@ export function mapPodcast(row: PodcastRow): Podcast {
 export function mapNote(row: NoteRow): Note {
   return {
     id: row.id,
-    podcastId: row.podcast_id,
+    bookId: row.book_id,
     type: row.type,
     content: row.content,
-    timestampSeconds: row.timestamp_seconds,
+    pageNumber: row.page_number,
+    chapterNumber: row.chapter_number,
     isFavorite: row.is_favorite,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     tags: mapTags(row.note_tags),
-    podcast: row.podcasts
+    book: row.books
       ? {
-          id: row.podcasts.id,
-          title: row.podcasts.title,
-          channelTitle: row.podcasts.channel_title,
-          youtubeVideoId: row.podcasts.youtube_video_id,
+          id: row.books.id,
+          title: row.books.title,
+          author: row.books.author,
+          coverUrl: row.books.cover_url,
         }
       : undefined,
   };

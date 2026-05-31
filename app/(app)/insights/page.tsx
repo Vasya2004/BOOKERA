@@ -1,9 +1,10 @@
 import { NoteCard } from "@/components/notes/note-card";
+import { DatabaseSetupCard } from "@/components/layout/database-setup-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { getInsights, getTags } from "@/server/queries/podcasts";
+import { DatabaseSetupError, getInsights, getTags } from "@/server/queries/books";
 import type { NoteType } from "@/types/database";
 
 type PageProps = {
@@ -16,10 +17,20 @@ export default async function InsightsPage({ searchParams }: PageProps) {
   const type = getParam(params.type) as NoteType | "all" | undefined;
   const tag = getParam(params.tag);
   const favorite = getParam(params.favorite) === "true";
-  const [notes, tags] = await Promise.all([
-    getInsights({ q, type, tag, favorite }),
-    getTags(),
-  ]);
+  let notes;
+  let tags;
+
+  try {
+    [notes, tags] = await Promise.all([
+      getInsights({ q, type, tag, favorite }),
+      getTags(),
+    ]);
+  } catch (error) {
+    if (error instanceof DatabaseSetupError) {
+      return <DatabaseSetupCard message={error.message} />;
+    }
+    throw error;
+  }
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -31,8 +42,8 @@ export default async function InsightsPage({ searchParams }: PageProps) {
         <SearchInput defaultValue={q} placeholder="Поиск по заметкам" />
         <Select name="type" defaultValue={type ?? "all"} className="h-11 md:h-10">
           <option value="all">Все типы</option>
-          <option value="thought">Мысли</option>
           <option value="insight">Инсайты</option>
+          <option value="quote">Цитаты</option>
           <option value="idea">Идеи</option>
           <option value="action">Действия</option>
           <option value="question">Вопросы</option>
@@ -49,10 +60,7 @@ export default async function InsightsPage({ searchParams }: PageProps) {
           <option value="false">Все</option>
           <option value="true">Избранные</option>
         </Select>
-        <Button
-          type="submit"
-          className="h-11 w-full bg-neutral-800 text-white hover:bg-neutral-700 active:bg-neutral-700 md:h-10"
-        >
+        <Button type="submit" className="h-11 w-full md:h-10">
           Поиск
         </Button>
       </form>
@@ -60,13 +68,13 @@ export default async function InsightsPage({ searchParams }: PageProps) {
       {notes.length > 0 ? (
         <div className="grid gap-3 lg:grid-cols-2">
           {notes.map((note) => (
-            <NoteCard key={note.id} note={note} showPodcast compact />
+            <NoteCard key={note.id} note={note} showBook compact />
           ))}
         </div>
       ) : (
         <EmptyState
           title="Инсайты не найдены"
-          description="Создавайте заметки типов «Мысль», «Инсайт», «Идея», «Действие» или «Вопрос» на страницах подкастов."
+          description="Создавайте заметки типов «Инсайт», «Цитата», «Идея», «Действие» или «Вопрос» на страницах книг."
         />
       )}
     </div>

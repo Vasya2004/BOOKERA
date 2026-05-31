@@ -22,7 +22,7 @@ export async function signInWithPassword(
     return failure(error.message);
   }
 
-  redirect("/dashboard");
+  redirect("/library");
 }
 
 export async function signUpWithPassword(
@@ -38,7 +38,10 @@ export async function signUpWithPassword(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { full_name: fullName || null } },
@@ -48,9 +51,14 @@ export async function signUpWithPassword(
     return failure(error.message);
   }
 
+  if (session) {
+    redirect("/library");
+  }
+
   return {
     ok: true,
-    message: "Аккаунт создан. Проверьте почту, если подтверждение включено в Supabase.",
+    message:
+      "Аккаунт создан. Подтвердите email, если в Supabase включено подтверждение почты, затем войдите.",
   };
 }
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { profileFormSchema } from "@/lib/validators/podcast";
+import { profileFormSchema } from "@/lib/validators/book";
 import { requireUser } from "@/server/actions/auth-helpers";
 import { failure, success, type ActionResult } from "@/server/actions/result";
 

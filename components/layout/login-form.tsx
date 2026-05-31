@@ -12,6 +12,24 @@ const initialState: ActionResult = { ok: true };
 
 export function LoginForm() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+
+  return (
+    <>
+      <AuthModeForm key={mode} mode={mode} />
+      <button
+        type="button"
+        className="mt-4 w-full text-center text-sm text-[#d8e2f7] transition hover:text-[#fff8ec]"
+        onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+      >
+        {mode === "signin"
+          ? "Нет аккаунта? Зарегистрироваться"
+          : "Уже есть аккаунт? Войти"}
+      </button>
+    </>
+  );
+}
+
+function AuthModeForm({ mode }: { mode: "signin" | "signup" }) {
   const action = mode === "signin" ? signInWithPassword : signUpWithPassword;
   const [state, formAction, pending] = useActionState(action, initialState);
 
@@ -49,18 +67,15 @@ export function LoginForm() {
           </p>
         ) : null}
         <Button type="submit" className="w-full" disabled={pending}>
-          {mode === "signin" ? "Войти" : "Создать аккаунт"}
+          {pending
+            ? mode === "signin"
+              ? "Входим..."
+              : "Создаём аккаунт..."
+            : mode === "signin"
+              ? "Войти"
+              : "Создать аккаунт"}
         </Button>
       </form>
-      <button
-        type="button"
-        className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
-        onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-      >
-        {mode === "signin"
-          ? "Нет аккаунта? Зарегистрироваться"
-          : "Уже есть аккаунт? Войти"}
-      </button>
     </Card>
   );
 }

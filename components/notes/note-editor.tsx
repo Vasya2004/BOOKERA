@@ -14,7 +14,7 @@ import type { ActionResult } from "@/server/actions/result";
 
 const initialState: ActionResult = { ok: true };
 
-export function NoteEditor({ podcastId }: { podcastId: string }) {
+export function NoteEditor({ bookId }: { bookId: string }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction, pending] = useActionState(createNote, initialState);
@@ -29,27 +29,31 @@ export function NoteEditor({ podcastId }: { podcastId: string }) {
   return (
     <Card className="rounded-xl p-3.5 sm:p-4">
       <form ref={formRef} action={formAction} className="space-y-3">
-        <input type="hidden" name="podcastId" value={podcastId} />
-        <input type="hidden" name="timestamp" value="" />
-        <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
+        <input type="hidden" name="bookId" value={bookId} />
+        <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
           <div className="space-y-2">
-            <Label htmlFor="type">Тип</Label>
-            <Select id="type" name="type" defaultValue="thought" className="h-11 sm:h-10">
-              <option value="thought">Мысль</option>
-              <option value="insight">Инсайт</option>
-              <option value="idea">Идея</option>
-              <option value="action">Действие</option>
-              <option value="question">Вопрос</option>
+            <Label htmlFor="chapterNumber">Глава</Label>
+            <Select
+              id="chapterNumber"
+              name="chapterNumber"
+              defaultValue="1"
+              className="h-11 sm:h-10"
+            >
+              {Array.from({ length: 20 }, (_, index) => index + 1).map((chapter) => (
+                <option key={chapter} value={chapter}>
+                  Глава {chapter}
+                </option>
+              ))}
             </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="tags">Теги заметки</Label>
-            <Input id="tags" name="tags" placeholder="idea, execution" />
+            <Input id="tags" name="tags" placeholder="память, стратегия" />
           </div>
         </div>
         <Textarea
           name="content"
-          placeholder="Запишите мысль сразу во время просмотра..."
+          placeholder="Запишите инсайт, цитату или вопрос по ходу чтения..."
           className="min-h-28"
           required
         />

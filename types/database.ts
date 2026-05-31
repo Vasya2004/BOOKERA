@@ -6,11 +6,11 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type PodcastStatus = "want_to_watch" | "watching" | "watched";
+export type BookStatus = "to_read" | "reading" | "finished";
 
 export type NoteType =
-  | "thought"
   | "insight"
+  | "quote"
   | "idea"
   | "action"
   | "question";
@@ -43,21 +43,20 @@ export type Database = {
         };
         Relationships: [];
       };
-      podcasts: {
+      books: {
         Row: {
           id: string;
           user_id: string;
-          youtube_url: string;
-          youtube_video_id: string;
           title: string;
-          channel_title: string | null;
-          thumbnail_url: string | null;
-          duration_seconds: number | null;
-          published_at: string | null;
+          author: string | null;
+          cover_url: string | null;
+          isbn: string | null;
+          published_year: number | null;
+          page_count: number | null;
           description: string | null;
-          status: PodcastStatus;
+          status: BookStatus;
           personal_rating: number | null;
-          watched_at: string | null;
+          finished_at: string | null;
           main_takeaway: string | null;
           summary: string | null;
           created_at: string;
@@ -66,34 +65,32 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          youtube_url: string;
-          youtube_video_id: string;
           title: string;
-          channel_title?: string | null;
-          thumbnail_url?: string | null;
-          duration_seconds?: number | null;
-          published_at?: string | null;
+          author?: string | null;
+          cover_url?: string | null;
+          isbn?: string | null;
+          published_year?: number | null;
+          page_count?: number | null;
           description?: string | null;
-          status?: PodcastStatus;
+          status?: BookStatus;
           personal_rating?: number | null;
-          watched_at?: string | null;
+          finished_at?: string | null;
           main_takeaway?: string | null;
           summary?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
-          youtube_url?: string;
-          youtube_video_id?: string;
           title?: string;
-          channel_title?: string | null;
-          thumbnail_url?: string | null;
-          duration_seconds?: number | null;
-          published_at?: string | null;
+          author?: string | null;
+          cover_url?: string | null;
+          isbn?: string | null;
+          published_year?: number | null;
+          page_count?: number | null;
           description?: string | null;
-          status?: PodcastStatus;
+          status?: BookStatus;
           personal_rating?: number | null;
-          watched_at?: string | null;
+          finished_at?: string | null;
           main_takeaway?: string | null;
           summary?: string | null;
           updated_at?: string;
@@ -104,10 +101,11 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          podcast_id: string;
+          book_id: string;
           type: NoteType;
           content: string;
-          timestamp_seconds: number | null;
+          page_number: number | null;
+          chapter_number: number | null;
           is_favorite: boolean;
           created_at: string;
           updated_at: string;
@@ -115,10 +113,11 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          podcast_id: string;
+          book_id: string;
           type: NoteType;
           content: string;
-          timestamp_seconds?: number | null;
+          page_number?: number | null;
+          chapter_number?: number | null;
           is_favorite?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -126,7 +125,8 @@ export type Database = {
         Update: {
           type?: NoteType;
           content?: string;
-          timestamp_seconds?: number | null;
+          page_number?: number | null;
+          chapter_number?: number | null;
           is_favorite?: boolean;
           updated_at?: string;
         };
@@ -153,14 +153,14 @@ export type Database = {
         };
         Relationships: [];
       };
-      podcast_tags: {
+      book_tags: {
         Row: {
-          podcast_id: string;
+          book_id: string;
           tag_id: string;
           user_id: string;
         };
         Insert: {
-          podcast_id: string;
+          book_id: string;
           tag_id: string;
           user_id: string;
         };
@@ -179,34 +179,6 @@ export type Database = {
           user_id: string;
         };
         Update: Record<string, never>;
-        Relationships: [];
-      };
-      google_drive_connections: {
-        Row: {
-          user_id: string;
-          access_token: string;
-          refresh_token: string;
-          token_expires_at: string;
-          last_synced_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          user_id: string;
-          access_token: string;
-          refresh_token: string;
-          token_expires_at: string;
-          last_synced_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          access_token?: string;
-          refresh_token?: string;
-          token_expires_at?: string;
-          last_synced_at?: string | null;
-          updated_at?: string;
-        };
         Relationships: [];
       };
     };

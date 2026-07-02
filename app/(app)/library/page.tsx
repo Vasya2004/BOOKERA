@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookCard } from "@/components/books/book-card";
+import { LibraryBookList } from "@/components/books/library-book-list";
 import { DatabaseSetupCard } from "@/components/layout/database-setup-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -52,11 +52,7 @@ export default async function LibraryPage({ searchParams }: PageProps) {
       </form>
 
       {books.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {books.map((book) => (
-            <BookCard key={book.id} book={book} />
-          ))}
-        </div>
+        <LibraryBookList books={books} />
       ) : (
         <EmptyState
           title="Книги не найдены"

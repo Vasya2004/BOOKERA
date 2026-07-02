@@ -191,6 +191,7 @@ export function NoteCard({
       {showBook && note.book ? (
         <Link
           href={`/library/${note.book.id}`}
+          prefetch
           className="mt-1.5 block truncate text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
         >
           {note.book.title}

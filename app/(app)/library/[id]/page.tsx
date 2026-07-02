@@ -1,17 +1,16 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { BookCover } from "@/components/books/book-card";
 import { BookForm } from "@/components/books/book-form";
+import { BookNotesPanel } from "@/components/books/book-notes-panel";
 import { BookStatusBadge } from "@/components/books/book-status-badge";
 import { DatabaseSetupCard } from "@/components/layout/database-setup-card";
-import { NoteEditor } from "@/components/notes/note-editor";
-import { NotesByChapter } from "@/components/notes/notes-by-chapter";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { collectChapterTitles } from "@/lib/notes/chapters";
+import { NotesPanelSkeleton } from "@/components/ui/page-skeleton";
 import { deleteBook, updateBook } from "@/server/actions/books";
-import { DatabaseSetupError, getBook, getBookNotes } from "@/server/queries/books";
+import { DatabaseSetupError, getBook } from "@/server/queries/books";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -20,10 +19,9 @@ type PageProps = {
 export default async function BookDetailPage({ params }: PageProps) {
   const { id } = await params;
   let book;
-  let notes;
 
   try {
-    [book, notes] = await Promise.all([getBook(id), getBookNotes(id, "all")]);
+    book = await getBook(id);
   } catch (error) {
     if (error instanceof DatabaseSetupError) {
       return <DatabaseSetupCard message={error.message} />;
@@ -37,12 +35,12 @@ export default async function BookDetailPage({ params }: PageProps) {
 
   const updateAction = updateBook.bind(null, book.id);
   const deleteAction = deleteBook.bind(null, book.id);
-  const chapterTitles = collectChapterTitles(notes);
 
   return (
     <div className="w-full space-y-8 pb-4">
       <Link
         href="/library"
+        prefetch
         className="inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -76,15 +74,9 @@ export default async function BookDetailPage({ params }: PageProps) {
 
       <section className="space-y-4">
         <h2 className="text-base font-semibold">Заметки</h2>
-        <NoteEditor bookId={book.id} chapterTitles={chapterTitles} />
-        {notes.length > 0 ? (
-          <NotesByChapter notes={notes} />
-        ) : (
-          <EmptyState
-            title="Пока пусто"
-            description="Укажите главу и добавьте первую заметку — они сгруппируются по главам."
-          />
-        )}
+        <Suspense fallback={<NotesPanelSkeleton />}>
+          <BookNotesPanel bookId={book.id} />
+        </Suspense>
       </section>
 
       <details className="rounded-lg border border-border/80 bg-card/60">

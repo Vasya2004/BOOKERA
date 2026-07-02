@@ -3,6 +3,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 import { hasSupabaseEnv, getSupabaseEnv } from "@/lib/supabase/env";
 
+function isPrefetchRequest(request: NextRequest) {
+  return (
+    request.headers.get("next-router-prefetch") === "1" ||
+    request.headers.get("purpose") === "prefetch"
+  );
+}
+
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!hasSupabaseEnv()) {
@@ -12,7 +19,7 @@ export async function updateSession(request: NextRequest) {
   const hasAuthCookies = request.cookies
     .getAll()
     .some((cookie) => cookie.name.includes("sb-") || cookie.name.includes("supabase"));
-  if (!hasAuthCookies) {
+  if (!hasAuthCookies || isPrefetchRequest(request)) {
     return response;
   }
 

@@ -52,6 +52,20 @@ export type BookFilters = {
   sort?: "new" | "finished" | "rating" | "updated";
 };
 
+const bookListSelect = `
+  id,
+  title,
+  author,
+  cover_url,
+  status,
+  personal_rating,
+  page_count,
+  created_at,
+  updated_at,
+  notes(count),
+  book_tags(tags(id, name, color))
+`;
+
 const bookSelect = `
   id,
   title,
@@ -89,6 +103,31 @@ const legacyBookSelect = `
   updated_at,
   notes(count),
   book_tags(tags(id, name, color))
+`;
+
+const bookNoteSelect = `
+  id,
+  book_id,
+  type,
+  content,
+  chapter_number,
+  chapter_title,
+  is_favorite,
+  created_at,
+  updated_at
+`;
+
+const favoriteNoteSelect = `
+  id,
+  book_id,
+  type,
+  content,
+  chapter_number,
+  chapter_title,
+  is_favorite,
+  created_at,
+  updated_at,
+  books(id, title, author, cover_url)
 `;
 
 type SupabaseServerClient = Awaited<ReturnType<typeof requireUser>>["supabase"];
@@ -168,7 +207,7 @@ function buildBooksQuery(
 
 export async function getBooks(filters: BookFilters = {}): Promise<Book[]> {
   const { supabase, user } = await requireUser();
-  let { data, error } = await buildBooksQuery(supabase, user.id, filters, bookSelect);
+  let { data, error } = await buildBooksQuery(supabase, user.id, filters, bookListSelect);
   let rows = data as unknown as BookRow[] | null;
 
   if (error && isMissingPageCountColumn(error)) {
@@ -228,24 +267,9 @@ export async function getBookNotes(
   const { supabase, user } = await requireUser();
   let query = supabase
     .from("notes")
-    .select(
-      `
-        id,
-        book_id,
-        type,
-        content,
-        page_number,
-        chapter_number,
-        chapter_title,
-        is_favorite,
-        created_at,
-        updated_at,
-        note_tags(tags(id, name, color))
-      `,
-    )
+    .select(bookNoteSelect)
     .eq("user_id", user.id)
     .eq("book_id", bookId)
-    .order("chapter_number", { ascending: true, nullsFirst: false })
     .order("created_at", { ascending: false });
 
   if (type && type !== "all") {
@@ -265,17 +289,14 @@ export async function getBookNotes(
           book_id,
           type,
           content,
-          page_number,
           chapter_number,
           is_favorite,
           created_at,
-          updated_at,
-          note_tags(tags(id, name, color))
+          updated_at
         `,
       )
       .eq("user_id", user.id)
       .eq("book_id", bookId)
-      .order("chapter_number", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
 
     if (type && type !== "all") {
@@ -294,11 +315,9 @@ export async function getBookNotes(
           book_id,
           type,
           content,
-          page_number,
           is_favorite,
           created_at,
-          updated_at,
-          note_tags(tags(id, name, color))
+          updated_at
         `,
       )
       .eq("user_id", user.id)
@@ -321,31 +340,28 @@ export async function getBookNotes(
   return (rows ?? []).map(mapNote);
 }
 
+const insightListSelect = `
+  id,
+  book_id,
+  type,
+  content,
+  chapter_number,
+  chapter_title,
+  is_favorite,
+  created_at,
+  updated_at,
+  books(id, title, author, cover_url)
+`;
+
 export async function getInsights(filters: {
   q?: string;
   type?: NoteType | "all";
-  tag?: string;
   favorite?: boolean;
 }): Promise<Note[]> {
   const { supabase, user } = await requireUser();
   let query = supabase
     .from("notes")
-    .select(
-      `
-        id,
-        book_id,
-        type,
-        content,
-        page_number,
-        chapter_number,
-        chapter_title,
-        is_favorite,
-        created_at,
-        updated_at,
-        note_tags(tags(id, name, color)),
-        books(id, title, author, cover_url)
-      `,
-    )
+    .select(insightListSelect)
     .eq("user_id", user.id)
     .in("type", ["insight", "quote", "idea", "action", "question"])
     .order("created_at", { ascending: false });
@@ -375,12 +391,10 @@ export async function getInsights(filters: {
           book_id,
           type,
           content,
-          page_number,
           chapter_number,
           is_favorite,
           created_at,
           updated_at,
-          note_tags(tags(id, name, color)),
           books(id, title, author, cover_url)
         `,
       )
@@ -412,11 +426,9 @@ export async function getInsights(filters: {
           book_id,
           type,
           content,
-          page_number,
           is_favorite,
           created_at,
           updated_at,
-          note_tags(tags(id, name, color)),
           books(id, title, author, cover_url)
         `,
       )
@@ -445,14 +457,53 @@ export async function getInsights(filters: {
     throwQueryError(error);
   }
 
-  const notes = (rows ?? []).map(mapNote);
-  if (!filters.tag || filters.tag === "all") {
-    return notes;
+  return (rows ?? []).map(mapNote);
+}
+
+async function getFavoriteNotesForDashboard(
+  supabase: SupabaseServerClient,
+  userId: string,
+) {
+  const result = await supabase
+    .from("notes")
+    .select(favoriteNoteSelect)
+    .eq("user_id", userId)
+    .eq("is_favorite", true)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (!result.error) {
+    return result;
   }
 
-  return notes.filter((note) =>
-    note.tags.some((tag) => tag.id === filters.tag || tag.name === filters.tag),
-  );
+  if (!isMissingChapterTitleColumn(result.error)) {
+    return result;
+  }
+
+  const legacy = await supabase
+    .from("notes")
+    .select(
+      `
+        id,
+        book_id,
+        type,
+        content,
+        chapter_number,
+        is_favorite,
+        created_at,
+        updated_at,
+        books(id, title, author, cover_url)
+      `,
+    )
+    .eq("user_id", userId)
+    .eq("is_favorite", true)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  return {
+    ...legacy,
+    data: addMissingChapterTitle(legacy.data as unknown[] | null),
+  };
 }
 
 export async function getTags(): Promise<Tag[]> {
@@ -475,23 +526,46 @@ export async function getTags(): Promise<Tag[]> {
 }
 
 export async function getDashboardData() {
-  const [books, insights] = await Promise.all([
-    getBooks({ sort: "new" }),
-    getInsights({ favorite: false }),
+  const { supabase, user } = await requireUser();
+
+  const [recentResult, favoriteResult, booksResult, notesResult] = await Promise.all([
+    supabase
+      .from("books")
+      .select(bookListSelect)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(4),
+    getFavoriteNotesForDashboard(supabase, user.id),
+    supabase.from("books").select("status, page_count").eq("user_id", user.id),
+    supabase
+      .from("notes")
+      .select("id, type, is_favorite")
+      .eq("user_id", user.id)
+      .in("type", ["insight", "quote", "idea", "action", "question"]),
   ]);
-  const finishedBooks = books.filter((book) => book.status === "finished");
+
+  for (const result of [recentResult, favoriteResult, booksResult, notesResult]) {
+    if (result.error) {
+      throwQueryError(result.error);
+    }
+  }
+
+  const books = (recentResult.data as unknown as BookRow[] | null) ?? [];
+  const allBooks = booksResult.data ?? [];
+  const allNotes = notesResult.data ?? [];
+  const finishedBooks = allBooks.filter((book) => book.status === "finished");
 
   return {
     stats: {
       finishedCount: finishedBooks.length,
       finishedPagesCount: finishedBooks.reduce(
-        (total, book) => total + (book.pageCount ?? 0),
+        (total, book) => total + (book.page_count ?? 0),
         0,
       ),
-      favoriteNotesCount: insights.filter((note) => note.isFavorite).length,
-      insightsCount: insights.length,
+      favoriteNotesCount: allNotes.filter((note) => note.is_favorite).length,
+      insightsCount: allNotes.length,
     },
-    recentBooks: books.slice(0, 4),
-    favoriteInsights: insights.filter((note) => note.isFavorite).slice(0, 5),
+    recentBooks: books.map(mapBook),
+    favoriteInsights: ((favoriteResult.data as unknown as NoteRow[] | null) ?? []).map(mapNote),
   };
 }

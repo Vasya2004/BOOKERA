@@ -41,7 +41,7 @@ export function BookCover({
 
 export function BookCard({ book }: { book: Book }) {
   return (
-    <Link href={`/library/${book.id}`} className="block h-full w-full">
+    <Link href={`/library/${book.id}`} prefetch className="block h-full w-full">
       <Card className="group h-full w-full overflow-hidden transition hover:border-[#dca64d]/60">
         <div className="flex h-full w-full gap-0">
           <div className="relative h-32 w-24 shrink-0 bg-muted sm:h-36 sm:w-32">

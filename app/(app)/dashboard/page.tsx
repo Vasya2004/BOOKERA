@@ -46,7 +46,7 @@ export default async function DashboardPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold">Последние книги</h2>
-          <Link href="/library" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link href="/library" prefetch className="text-sm font-medium text-muted-foreground hover:text-foreground">
             В библиотеку
           </Link>
         </div>
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-semibold">Избранные заметки</h2>
-          <Link href="/insights" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link href="/insights" prefetch className="text-sm font-medium text-muted-foreground hover:text-foreground">
             Все заметки
           </Link>
         </div>

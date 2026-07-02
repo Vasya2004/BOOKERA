@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Link2, Pencil, Star, Trash2, X } from "lucide-react";
+import { Check, MoreVertical, Pencil, Star, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { deleteNote, toggleFavoriteNote, updateNote } from "@/server/actions/notes";
+import { getChapterLabel } from "@/lib/notes/chapters";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { NoteTypeBadge } from "@/components/notes/note-type-badge";
 import { cn } from "@/lib/utils/cn";
 import type { Note } from "@/types/domain";
 
@@ -25,11 +24,34 @@ export function NoteCard({
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [content, setContent] = useState(note.content);
-  const [chapterNumber, setChapterNumber] = useState(note.chapterNumber?.toString() ?? "1");
-  const [tags, setTags] = useState(note.tags.map((tag) => tag.name).join(", "));
+  const [chapterTitle, setChapterTitle] = useState(note.chapterTitle ?? "");
   const [favorite, setFavorite] = useState(note.isFavorite);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (menuRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setMenuOpen(false);
+    }
+
+    const timer = window.setTimeout(() => {
+      document.addEventListener("pointerdown", handlePointerDown, true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [menuOpen]);
 
   function run(result: Promise<{ ok: boolean; message?: string }>) {
     startTransition(async () => {
@@ -43,137 +65,139 @@ export function NoteCard({
     });
   }
 
+  if (editing) {
+    return (
+      <article className="space-y-2 rounded-md border border-border bg-card p-2.5">
+        <Input
+          value={chapterTitle}
+          onChange={(event) => setChapterTitle(event.target.value)}
+          placeholder="Название главы"
+          className="h-8 text-xs"
+        />
+        <Textarea
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          className="min-h-[72px] text-sm"
+        />
+        <div className="flex justify-end gap-1.5">
+          <Button
+            variant="secondary"
+            className="h-8 px-2.5"
+            onClick={() => {
+              setContent(note.content);
+              setChapterTitle(note.chapterTitle ?? "");
+              setEditing(false);
+            }}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            disabled={pending}
+            className="h-8 px-2.5"
+            onClick={() => {
+              const tags = note.tags.map((tag) => tag.name).join(", ");
+              run(updateNote(note.id, note.bookId, content, chapterTitle, tags));
+              setEditing(false);
+            }}
+          >
+            <Check className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </article>
+    );
+  }
+
   return (
-    <Card
+    <article
       className={cn(
-        compact ? "p-3" : "p-4",
-        favorite
-          ? "border-[#dca64d]/70 bg-gradient-to-br from-[#fff4d7] via-card to-card shadow-[0_12px_35px_-24px_rgba(220,166,77,0.9)]"
-          : undefined,
+        "group relative h-full w-full rounded-lg border border-border/70 bg-card p-3 pr-12 transition md:pr-10",
+        menuOpen && "z-30",
+        favorite && "border-[#dca64d]/45 bg-[#fff8ec]",
       )}
     >
-      {editing ? (
-        <div className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
-            <select
-              value={chapterNumber}
-              onChange={(event) => setChapterNumber(event.target.value)}
-              className="h-10 w-full rounded-md border border-border bg-[#fffdf8] px-3 text-sm text-foreground outline-none transition focus:border-[#dca64d] focus:ring-2 focus:ring-ring/65"
-              aria-label="Глава"
-            >
-              {Array.from({ length: 20 }, (_, index) => index + 1).map((chapter) => (
-                <option key={chapter} value={chapter}>
-                  Глава {chapter}
-                </option>
-              ))}
-            </select>
-            <Input value={tags} onChange={(event) => setTags(event.target.value)} />
-          </div>
-          <Textarea value={content} onChange={(event) => setContent(event.target.value)} />
-          <div className="flex flex-col justify-end gap-2 sm:flex-row">
-            <Button
-              variant="secondary"
-              className="w-full sm:w-auto"
-              onClick={() => setEditing(false)}
-            >
-              <X className="h-4 w-4" />
-              Отмена
-            </Button>
-            <Button
+      <div ref={menuRef} className="absolute right-0.5 top-0.5 z-10 md:right-1 md:top-1">
+        <Button
+          type="button"
+          variant="ghost"
+          className={cn(
+            "touch-manipulation rounded-full p-0 text-muted-foreground",
+            "h-11 w-11 min-h-11 min-w-11",
+            "opacity-100 md:h-8 md:w-8 md:min-h-8 md:min-w-8 md:opacity-70 md:group-hover:opacity-100",
+            menuOpen && "bg-muted/80 opacity-100",
+          )}
+          aria-label="Действия с заметкой"
+          aria-expanded={menuOpen}
+          aria-haspopup="menu"
+          onClick={(event) => {
+            event.stopPropagation();
+            setMenuOpen((open) => !open);
+          }}
+        >
+          <MoreVertical className="h-5 w-5 md:h-4 md:w-4" />
+        </Button>
+        {menuOpen ? (
+          <div
+            role="menu"
+            className="absolute right-0 top-full z-40 mt-1 min-w-[180px] overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="flex min-h-11 w-full touch-manipulation items-center gap-2.5 px-3 py-2.5 text-left text-sm active:bg-muted/70 md:min-h-0 md:py-2 md:hover:bg-muted/70"
               disabled={pending}
-              className="w-full sm:w-auto"
               onClick={() => {
-                run(updateNote(note.id, note.bookId, content, chapterNumber, tags));
-                setEditing(false);
+                const next = !favorite;
+                setFavorite(next);
+                run(toggleFavoriteNote(note.id, note.bookId, next));
+                setMenuOpen(false);
               }}
             >
-              <Check className="h-4 w-4" />
-              Сохранить
-            </Button>
+              <Star className={cn("h-4 w-4 shrink-0", favorite && "fill-current text-[#b8781d]")} />
+              {favorite ? "Убрать из избранного" : "В избранное"}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="flex min-h-11 w-full touch-manipulation items-center gap-2.5 px-3 py-2.5 text-left text-sm active:bg-muted/70 md:min-h-0 md:py-2 md:hover:bg-muted/70"
+              onClick={() => {
+                setEditing(true);
+                setMenuOpen(false);
+              }}
+            >
+              <Pencil className="h-4 w-4 shrink-0" />
+              Редактировать
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="flex min-h-11 w-full touch-manipulation items-center gap-2.5 px-3 py-2.5 text-left text-sm text-destructive active:bg-destructive/10 md:min-h-0 md:py-2 md:hover:bg-destructive/10"
+              disabled={pending}
+              onClick={() => {
+                run(deleteNote(note.id, note.bookId));
+                setMenuOpen(false);
+              }}
+            >
+              <Trash2 className="h-4 w-4 shrink-0" />
+              Удалить
+            </button>
           </div>
-        </div>
-      ) : (
-        <div className={cn(compact ? "space-y-2" : "space-y-3")}>
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                <NoteTypeBadge type={note.type} />
-                {note.chapterNumber ? (
-                  <span className="inline-flex rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    гл. {note.chapterNumber}
-                  </span>
-                ) : null}
-                {note.tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex max-w-[180px] items-center rounded-full border px-2 py-0.5 text-xs font-medium"
-                    style={{
-                      backgroundColor: `${tag.color ?? "#dca64d"}22`,
-                      borderColor: `${tag.color ?? "#dca64d"}66`,
-                      color: tag.color ?? "#17213a",
-                    }}
-                    title={tag.name}
-                  >
-                    <span className="truncate">{tag.name}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="shrink-0 flex items-center gap-1">
-              {showBook && note.book ? (
-                <Link
-                  href={`/library/${note.book.id}`}
-                  aria-label="Открыть книгу"
-                  className={cn(
-                    "inline-flex items-center justify-center rounded-full text-foreground transition hover:bg-muted",
-                    compact ? "h-8 min-w-12 px-3.5" : "h-9 min-w-14 px-4",
-                  )}
-                >
-                  <Link2 className="h-4 w-4" />
-                </Link>
-              ) : null}
-              <Button
-                variant="ghost"
-                className={cn(
-                  compact ? "h-8 min-w-12 rounded-full px-3.5" : "h-9 min-w-14 rounded-full px-4",
-                  favorite
-                    ? "bg-[#fff0c7] text-[#b8781d] hover:bg-[#ffe6a7]"
-                    : "text-muted-foreground",
-                )}
-                disabled={pending}
-                onClick={() => {
-                  const next = !favorite;
-                  setFavorite(next);
-                  run(toggleFavoriteNote(note.id, note.bookId, next));
-                }}
-              >
-                <Star className={favorite ? "h-4 w-4 fill-current" : "h-4 w-4"} />
-              </Button>
-              <Button
-                variant="ghost"
-                className={compact ? "h-8 min-w-12 rounded-full px-3.5" : "h-9 min-w-14 rounded-full px-4"}
-                onClick={() => setEditing(true)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                className={cn(
-                  compact ? "h-8 min-w-12 rounded-full px-3.5" : "h-9 min-w-14 rounded-full px-4",
-                  "text-destructive",
-                )}
-                disabled={pending}
-                onClick={() => run(deleteNote(note.id, note.bookId))}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <p className={cn("whitespace-pre-wrap text-sm", compact ? "line-clamp-2 leading-5" : "leading-6")}>
-            {note.content}
-          </p>
-        </div>
-      )}
-    </Card>
+        ) : null}
+      </div>
+
+      <p className="whitespace-pre-wrap break-words text-sm leading-5 text-foreground">
+        {note.content}
+      </p>
+
+      {showBook && note.book ? (
+        <Link
+          href={`/library/${note.book.id}`}
+          className="mt-1.5 block truncate text-[11px] font-medium text-muted-foreground hover:text-foreground hover:underline"
+        >
+          {note.book.title}
+        </Link>
+      ) : !compact ? (
+        <p className="mt-1.5 truncate text-[11px] text-muted-foreground">{getChapterLabel(note)}</p>
+      ) : null}
+    </article>
   );
 }

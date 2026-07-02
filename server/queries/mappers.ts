@@ -31,6 +31,7 @@ export type NoteRow = {
   content: string;
   page_number: number | null;
   chapter_number: number | null;
+  chapter_title: string | null;
   is_favorite: boolean;
   created_at: string;
   updated_at: string;
@@ -85,6 +86,7 @@ export function mapNote(row: NoteRow): Note {
     content: row.content,
     pageNumber: row.page_number,
     chapterNumber: row.chapter_number,
+    chapterTitle: row.chapter_title,
     isFavorite: row.is_favorite,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

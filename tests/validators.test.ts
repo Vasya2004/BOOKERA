@@ -36,6 +36,16 @@ describe("bookFormSchema", () => {
 });
 
 describe("noteFormSchema", () => {
+  it("accepts notes with chapter titles", () => {
+    const result = noteFormSchema.safeParse({
+      bookId: "00000000-0000-4000-8000-000000000000",
+      content: "This changes how I think about distribution.",
+      chapterTitle: "Введение",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it("accepts default insight notes with chapter numbers", () => {
     const result = noteFormSchema.safeParse({
       bookId: "00000000-0000-4000-8000-000000000000",

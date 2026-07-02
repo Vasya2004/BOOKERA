@@ -2,20 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { noteFormSchema, parseTagList } from "@/lib/validators/book";
+import { normalizeChapterTitle } from "@/lib/notes/chapters";
 import { requireUser } from "@/server/actions/auth-helpers";
 import { failure, success, type ActionResult } from "@/server/actions/result";
 import { syncNoteTags } from "@/server/actions/tags";
 
-const CHAPTER_NUMBER_MIGRATION_MESSAGE =
-  "Колонка для глав заметок ещё не создана в Supabase. Выполните миграцию supabase/migrations/202606010001_add_note_chapter_number.sql в SQL Editor.";
+const CHAPTER_TITLE_MIGRATION_MESSAGE =
+  "Колонка для названий глав ещё не создана в Supabase. Выполните миграцию supabase/migrations/202607020001_add_note_chapter_title.sql в SQL Editor.";
 
-function isMissingChapterNumberColumn(error: { message: string; code?: string }) {
+function isMissingChapterTitleColumn(error: { message: string; code?: string }) {
   return (
-    error.message.includes("chapter_number") &&
+    error.message.includes("chapter_title") &&
     (error.message.includes("does not exist") ||
       error.message.includes("schema cache") ||
       error.code === "PGRST204")
   );
+}
+
+function emptyToNull(value: string | undefined) {
+  return normalizeChapterTitle(value);
 }
 
 export async function createNote(
@@ -34,6 +39,11 @@ export async function createNote(
   }
 
   const { supabase, user } = await requireUser();
+  const chapterNumber =
+    parsed.data.chapterNumber === "" || parsed.data.chapterNumber === undefined
+      ? null
+      : parsed.data.chapterNumber;
+
   const { data, error } = await supabase
     .from("notes")
     .insert({
@@ -43,15 +53,16 @@ export async function createNote(
       content: parsed.data.content,
       page_number:
         parsed.data.pageNumber === "" ? null : parsed.data.pageNumber ?? null,
-      chapter_number: parsed.data.chapterNumber,
+      chapter_number: chapterNumber,
+      chapter_title: emptyToNull(parsed.data.chapterTitle),
       is_favorite: Boolean(parsed.data.isFavorite),
     })
     .select("id")
     .single();
 
   if (error) {
-    if (isMissingChapterNumberColumn(error)) {
-      return failure(CHAPTER_NUMBER_MIGRATION_MESSAGE);
+    if (isMissingChapterTitleColumn(error)) {
+      return failure(CHAPTER_TITLE_MIGRATION_MESSAGE);
     }
     return failure(error.message);
   }
@@ -67,20 +78,16 @@ export async function updateNote(
   noteId: string,
   bookId: string,
   content: string,
-  chapterNumber: string,
+  chapterTitle: string,
   tags: string,
 ): Promise<ActionResult> {
   if (!content.trim()) {
     return failure("Заметка не может быть пустой.");
   }
 
-  const parsedChapterNumber = Number(chapterNumber);
-  if (
-    !Number.isInteger(parsedChapterNumber) ||
-    parsedChapterNumber < 1 ||
-    parsedChapterNumber > 20
-  ) {
-    return failure("Глава должна быть числом от 1 до 20.");
+  const normalizedTitle = normalizeChapterTitle(chapterTitle);
+  if (normalizedTitle && normalizedTitle.length > 120) {
+    return failure("Название главы не должно быть длиннее 120 символов.");
   }
 
   const { supabase, user } = await requireUser();
@@ -88,15 +95,15 @@ export async function updateNote(
     .from("notes")
     .update({
       content: content.trim(),
-      chapter_number: parsedChapterNumber,
+      chapter_title: normalizedTitle,
     })
     .eq("id", noteId)
     .eq("book_id", bookId)
     .eq("user_id", user.id);
 
   if (error) {
-    if (isMissingChapterNumberColumn(error)) {
-      return failure(CHAPTER_NUMBER_MIGRATION_MESSAGE);
+    if (isMissingChapterTitleColumn(error)) {
+      return failure(CHAPTER_TITLE_MIGRATION_MESSAGE);
     }
     return failure(error.message);
   }

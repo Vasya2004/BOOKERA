@@ -15,7 +15,7 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 const navItems = [
   { href: "/dashboard", label: "Дашборд", icon: BarChart3 },
   { href: "/library", label: "Библиотека", icon: BookOpen },
-  { href: "/insights", label: "Инсайты", icon: Lightbulb },
+  { href: "/insights", label: "Заметки", icon: Lightbulb },
   { href: "/settings", label: "Настройки", icon: Settings },
 ];
 

@@ -48,7 +48,8 @@ export const noteFormSchema = z.object({
   type: noteTypeSchema.default("insight"),
   content: z.string().trim().min(1, "Note cannot be empty").max(4000),
   pageNumber: z.coerce.number().int().positive().optional().or(z.literal("")),
-  chapterNumber: z.coerce.number().int().min(1).max(20),
+  chapterNumber: z.coerce.number().int().min(1).max(20).optional().or(z.literal("")),
+  chapterTitle: z.string().trim().max(120).optional().or(z.literal("")),
   isFavorite: z.coerce.boolean().optional(),
   tags: z.string().trim().optional().or(z.literal("")),
 });

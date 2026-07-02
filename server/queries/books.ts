@@ -104,10 +104,27 @@ function addMissingPageCount(rows: unknown[] | null) {
   })) as unknown as BookRow[];
 }
 
+function isMissingChapterTitleColumn(error: { message: string; code?: string }) {
+  return (
+    error.message.includes("chapter_title") &&
+    (error.message.includes("does not exist") ||
+      error.message.includes("schema cache") ||
+      error.code === "PGRST204")
+  );
+}
+
 function addMissingChapterNumber(rows: unknown[] | null) {
   return (rows ?? []).map((row) => ({
     ...(row as Record<string, unknown>),
     chapter_number: null,
+    chapter_title: (row as Record<string, unknown>).chapter_title ?? null,
+  })) as unknown as NoteRow[];
+}
+
+function addMissingChapterTitle(rows: unknown[] | null) {
+  return (rows ?? []).map((row) => ({
+    ...(row as Record<string, unknown>),
+    chapter_title: null,
   })) as unknown as NoteRow[];
 }
 
@@ -219,6 +236,7 @@ export async function getBookNotes(
         content,
         page_number,
         chapter_number,
+        chapter_title,
         is_favorite,
         created_at,
         updated_at,
@@ -238,7 +256,36 @@ export async function getBookNotes(
   let error = initialError;
   let rows = data as unknown as NoteRow[] | null;
 
-  if (error && isMissingChapterNumberColumn(error)) {
+  if (error && isMissingChapterTitleColumn(error)) {
+    let legacyQuery = supabase
+      .from("notes")
+      .select(
+        `
+          id,
+          book_id,
+          type,
+          content,
+          page_number,
+          chapter_number,
+          is_favorite,
+          created_at,
+          updated_at,
+          note_tags(tags(id, name, color))
+        `,
+      )
+      .eq("user_id", user.id)
+      .eq("book_id", bookId)
+      .order("chapter_number", { ascending: true, nullsFirst: false })
+      .order("created_at", { ascending: false });
+
+    if (type && type !== "all") {
+      legacyQuery = legacyQuery.eq("type", type);
+    }
+
+    const legacy = await legacyQuery;
+    error = legacy.error;
+    rows = addMissingChapterTitle(legacy.data as unknown[] | null);
+  } else if (error && isMissingChapterNumberColumn(error)) {
     let legacyQuery = supabase
       .from("notes")
       .select(
@@ -291,6 +338,7 @@ export async function getInsights(filters: {
         content,
         page_number,
         chapter_number,
+        chapter_title,
         is_favorite,
         created_at,
         updated_at,
@@ -318,7 +366,44 @@ export async function getInsights(filters: {
   let error = initialError;
   let rows = data as unknown as NoteRow[] | null;
 
-  if (error && isMissingChapterNumberColumn(error)) {
+  if (error && isMissingChapterTitleColumn(error)) {
+    let legacyQuery = supabase
+      .from("notes")
+      .select(
+        `
+          id,
+          book_id,
+          type,
+          content,
+          page_number,
+          chapter_number,
+          is_favorite,
+          created_at,
+          updated_at,
+          note_tags(tags(id, name, color)),
+          books(id, title, author, cover_url)
+        `,
+      )
+      .eq("user_id", user.id)
+      .in("type", ["insight", "quote", "idea", "action", "question"])
+      .order("created_at", { ascending: false });
+
+    if (filters.type && filters.type !== "all") {
+      legacyQuery = legacyQuery.eq("type", filters.type);
+    }
+
+    if (filters.favorite) {
+      legacyQuery = legacyQuery.eq("is_favorite", true);
+    }
+
+    if (filters.q) {
+      legacyQuery = legacyQuery.ilike("content", `%${filters.q}%`);
+    }
+
+    const legacy = await legacyQuery;
+    error = legacy.error;
+    rows = addMissingChapterTitle(legacy.data as unknown[] | null);
+  } else if (error && isMissingChapterNumberColumn(error)) {
     let legacyQuery = supabase
       .from("notes")
       .select(

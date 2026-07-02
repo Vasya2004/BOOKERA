@@ -106,6 +106,7 @@ export type Database = {
           content: string;
           page_number: number | null;
           chapter_number: number | null;
+          chapter_title: string | null;
           is_favorite: boolean;
           created_at: string;
           updated_at: string;
@@ -118,6 +119,7 @@ export type Database = {
           content: string;
           page_number?: number | null;
           chapter_number?: number | null;
+          chapter_title?: string | null;
           is_favorite?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -127,6 +129,7 @@ export type Database = {
           content?: string;
           page_number?: number | null;
           chapter_number?: number | null;
+          chapter_title?: string | null;
           is_favorite?: boolean;
           updated_at?: string;
         };

@@ -51,7 +51,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         {recentBooks.length > 0 ? (
-          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {recentBooks.map((book) => (
               <BookCard key={book.id} book={book} />
             ))}
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         {favoriteInsights.length > 0 ? (
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {favoriteInsights.map((note) => (
               <NoteCard key={note.id} note={note} showBook />
             ))}

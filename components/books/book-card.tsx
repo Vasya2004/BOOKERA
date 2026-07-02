@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Calendar, MessageSquare, Star } from "lucide-react";
+import { BookOpen, Star } from "lucide-react";
 import { BookStatusBadge } from "@/components/books/book-status-badge";
-import { TagList } from "@/components/tags/tag-input";
 import { Card } from "@/components/ui/card";
 import type { Book } from "@/types/domain";
 
@@ -42,47 +41,34 @@ export function BookCover({
 
 export function BookCard({ book }: { book: Book }) {
   return (
-    <Link href={`/library/${book.id}`}>
-      <Card className="group overflow-hidden transition hover:-translate-y-0.5 hover:border-[#dca64d]/70 hover:shadow-[0_24px_70px_-46px_rgba(7,17,39,0.95)]">
-        <div className="grid grid-cols-[104px_1fr] gap-0 sm:grid-cols-[128px_1fr]">
-          <div className="relative min-h-40 bg-muted">
+    <Link href={`/library/${book.id}`} className="block h-full w-full">
+      <Card className="group h-full w-full overflow-hidden transition hover:border-[#dca64d]/60">
+        <div className="flex h-full w-full gap-0">
+          <div className="relative h-32 w-24 shrink-0 bg-muted sm:h-36 sm:w-32">
             <BookCover book={book} />
           </div>
-          <div className="flex min-w-0 flex-col justify-between gap-4 p-4">
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="line-clamp-2 text-sm font-semibold leading-5 group-hover:underline">
-                    {book.title}
-                  </h2>
-                  {book.author ? (
-                    <p className="mt-1 truncate text-xs text-muted-foreground">{book.author}</p>
-                  ) : null}
-                </div>
-                <BookStatusBadge status={book.status} />
+          <div className="flex min-w-0 flex-1 flex-col justify-between p-4">
+            <div className="space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <h2 className="line-clamp-2 text-sm font-semibold leading-5 group-hover:underline">
+                  {book.title}
+                </h2>
+                <BookStatusBadge status={book.status} className="shrink-0" />
               </div>
-              <TagList tags={book.tags} compact />
+              {book.author ? (
+                <p className="truncate text-xs text-muted-foreground">{book.author}</p>
+              ) : null}
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Star className="h-3.5 w-3.5" />
-                {book.personalRating ? `${book.personalRating}/10` : "-"}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <MessageSquare className="h-3.5 w-3.5" />
-                {book.notesCount}
-              </span>
-              {book.pageCount ? (
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {book.personalRating ? (
                 <span className="inline-flex items-center gap-1">
-                  <BookOpen className="h-3.5 w-3.5" />
-                  {book.pageCount}
+                  <Star className="h-3.5 w-3.5" />
+                  {book.personalRating}/10
                 </span>
               ) : null}
               <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                {new Intl.DateTimeFormat("ru", { dateStyle: "medium" }).format(
-                  new Date(book.createdAt),
-                )}
+                <BookOpen className="h-3.5 w-3.5" />
+                {book.notesCount} зам.
               </span>
             </div>
           </div>

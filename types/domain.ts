@@ -33,6 +33,7 @@ export type Note = {
   content: string;
   pageNumber: number | null;
   chapterNumber: number | null;
+  chapterTitle: string | null;
   isFavorite: boolean;
   createdAt: string;
   updatedAt: string;

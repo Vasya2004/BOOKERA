@@ -22,11 +22,11 @@ const navItems = [
 export function AppSidebar({ email }: { email: string }) {
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#071127]/92 px-4 pb-3 pt-[calc(env(safe-area-inset-top,0px)+0.875rem)] text-[#fff8ec] shadow-[0_10px_40px_-28px_rgba(0,0,0,0.75)] backdrop-blur md:hidden">
-        <div className="flex min-h-10 items-center justify-between gap-3">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#071127]/92 px-4 pb-2 pt-[calc(env(safe-area-inset-top,0px)+0.625rem)] text-[#fff8ec] shadow-[0_10px_40px_-28px_rgba(0,0,0,0.75)] backdrop-blur md:hidden">
+        <div className="flex min-h-9 items-center justify-between gap-3">
           <BrandLogo compact />
           <Link href="/library/new">
-            <Button className="h-9 rounded-full px-3" aria-label="Добавить книгу">
+            <Button className="h-8 rounded-full px-2.5" aria-label="Добавить книгу">
               <Plus className="h-4 w-4" />
             </Button>
           </Link>

@@ -28,7 +28,7 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-transparent">
       <AppSidebar email={user.email ?? ""} />
-      <main className="mx-auto min-h-screen w-full max-w-[1500px] overflow-x-hidden bg-[linear-gradient(180deg,#fff8ec_0%,#f4ead7_58%,#ead8b8_100%)] px-3 pb-32 pt-[calc(env(safe-area-inset-top,0px)+4.75rem)] text-foreground shadow-[inset_18px_0_55px_-48px_rgba(4,12,28,0.9)] sm:px-4 md:rounded-l-[2rem] md:pb-8 md:pl-72 md:pr-8 md:pt-8">
+      <main className="mx-auto min-h-screen w-full max-w-[1500px] overflow-x-hidden bg-[linear-gradient(180deg,#fff8ec_0%,#f4ead7_58%,#ead8b8_100%)] px-3 pb-32 pt-[calc(env(safe-area-inset-top,0px)+4.5rem)] text-foreground shadow-[inset_18px_0_55px_-48px_rgba(4,12,28,0.9)] sm:px-4 md:rounded-l-[2rem] md:pb-8 md:pl-72 md:pr-8 md:pt-8">
         {children}
       </main>
       <Toaster />

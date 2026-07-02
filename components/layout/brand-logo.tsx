@@ -32,10 +32,15 @@ export function BrandLogo({
   compact?: boolean;
 }) {
   return (
-    <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
-      <BrandMark />
+    <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
+      <BrandMark className={compact ? "h-8 w-8" : undefined} />
       <span className="min-w-0">
-        <span className="block text-base font-semibold leading-tight tracking-tight">
+        <span
+          className={cn(
+            "block font-semibold leading-tight tracking-tight",
+            compact ? "text-sm" : "text-base",
+          )}
+        >
           Bookera
         </span>
         {!compact && email ? (
